@@ -12,22 +12,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 class RoleBasedAbilityResolverTest {
 
     private final Map<String, List<Ability>> catalog = Map.of(
-            "LEADER", List.of(Ability.of("read", "workorder"), Ability.of("approve", "workorder")),
-            "FINANCE", List.of(Ability.of("read", "workorder"), Ability.of("authorize", "budget")));
+            "EDITOR", List.of(Ability.of("read", "article"), Ability.of("publish", "article")),
+            "ADMIN", List.of(Ability.of("read", "article"), Ability.of("manage", "report")));
 
     @Test
     void flattensRolesToAbilitiesAndDedups() {
-        RolesLookup roles = principal -> Set.of("LEADER", "FINANCE");
+        RolesLookup roles = principal -> Set.of("EDITOR", "ADMIN");
         AbilityResolver resolver = new RoleBasedAbilityResolver(catalog, roles);
 
         AuthorizationProfile profile = resolver.resolve(AuthPrincipal.user(UUID.randomUUID()));
 
-        assertThat(profile.roles()).containsExactlyInAnyOrder("LEADER", "FINANCE");
-        // read:workorder appears in both roles but is de-duplicated.
+        assertThat(profile.roles()).containsExactlyInAnyOrder("EDITOR", "ADMIN");
+        // read:article appears in both roles but is de-duplicated.
         assertThat(profile.abilities()).containsExactlyInAnyOrder(
-                Ability.of("read", "workorder"),
-                Ability.of("approve", "workorder"),
-                Ability.of("authorize", "budget"));
+                Ability.of("read", "article"),
+                Ability.of("publish", "article"),
+                Ability.of("manage", "report"));
     }
 
     @Test

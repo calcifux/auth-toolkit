@@ -16,7 +16,7 @@ import java.util.List;
  *     skip-paths: [/actuator]
  *     session:                # opaque HttpOnly cookie (SPA front-channel)
  *       enabled: true
- *       cookie-name: wo_session
+ *       cookie-name: app_session
  *     jwt:                    # bearer tokens (API / services)
  *       enabled: false
  *       issuer: https://login.microsoftonline.com/<tenant>/v2.0
@@ -37,6 +37,7 @@ public class AuthToolkitProperties {
     private Header header = new Header();
     private Jwt jwt = new Jwt();
     private Session session = new Session();
+    private MethodSecurity methodSecurity = new MethodSecurity();
 
     /** Dev / trusted-proxy header adapter. */
     @Data
@@ -81,5 +82,17 @@ public class AuthToolkitProperties {
         private boolean enabled = false;
         /** Name of the opaque session cookie. */
         private String cookieName = "session";
+    }
+
+    /** Spring Security method-security bridge (@PreAuthorize). Needs Spring Security on the classpath. */
+    @Data
+    public static class MethodSecurity {
+        /**
+         * When true (and Spring Security is present), enables {@code @EnableMethodSecurity} and
+         * bridges the resolved roles/abilities into the Spring {@code SecurityContext} as authorities,
+         * so {@code @PreAuthorize("hasAnyAuthority('publish:article')")} / {@code hasRole('EDITOR')}
+         * and {@code @PreAuthorize("@authz.can('publish','article')")} work.
+         */
+        private boolean enabled = false;
     }
 }

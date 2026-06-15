@@ -15,7 +15,7 @@ import java.util.UUID;
  * the read side of the toolkit. Mirrors the {@code Uploads}/{@code Downloads} facades.
  *
  * <pre>{@code
- * if (!Auth.can("approve", "workorder")) throw new ForbiddenException();
+ * if (!Auth.can("publish", "article")) throw new ForbiddenException();
  * UUID me = Auth.userId().orElseThrow();
  * }</pre>
  *

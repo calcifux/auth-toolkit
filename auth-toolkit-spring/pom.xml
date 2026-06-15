@@ -40,10 +40,30 @@
       <groupId>org.springframework</groupId>
       <artifactId>spring-web</artifactId>
     </dependency>
+    <!-- Spring MVC (OPTIONAL): enables the @CurrentUser argument resolver. -->
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-webmvc</artifactId>
+      <optional>true</optional>
+    </dependency>
     <dependency>
       <groupId>jakarta.servlet</groupId>
       <artifactId>jakarta.servlet-api</artifactId>
       <scope>provided</scope>
+    </dependency>
+
+    <!-- Method-security bridge (OPTIONAL): only when the app brings Spring Security
+         does the @PreAuthorize support auto-configure. Kept optional so the toolkit's
+         facade-only mode stays lightweight. -->
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-core</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-config</artifactId>
+      <optional>true</optional>
     </dependency>
 
     <!-- Emits config metadata for IDE autocomplete of auth.toolkit.* -->

@@ -10,25 +10,25 @@ import static org.assertj.core.api.Assertions.assertThat;
 class AccessEvaluatorTest {
 
     private final List<Ability> granted = List.of(
-            Ability.of("read", "workorder"),
-            Ability.of("approve", "workorder"));
+            Ability.of("read", "article"),
+            Ability.of("publish", "article"));
 
     @Test
     void grantsMatchingUnconditionalAbility() {
-        assertThat(AccessEvaluator.can(granted, "approve", "workorder")).isTrue();
-        assertThat(AccessEvaluator.can(granted, "read", "workorder")).isTrue();
+        assertThat(AccessEvaluator.can(granted, "publish", "article")).isTrue();
+        assertThat(AccessEvaluator.can(granted, "read", "article")).isTrue();
     }
 
     @Test
     void deniesUnknownActionOrSubject() {
-        assertThat(AccessEvaluator.can(granted, "delete", "workorder")).isFalse();
-        assertThat(AccessEvaluator.can(granted, "read", "budget")).isFalse();
+        assertThat(AccessEvaluator.can(granted, "delete", "article")).isFalse();
+        assertThat(AccessEvaluator.can(granted, "read", "report")).isFalse();
     }
 
     @Test
     void wildcardAndManageMatchAnyAction() {
-        List<Ability> admin = List.of(Ability.of(AccessEvaluator.MANAGE, "workorder"));
-        assertThat(AccessEvaluator.can(admin, "delete", "workorder")).isTrue();
+        List<Ability> admin = List.of(Ability.of(AccessEvaluator.MANAGE, "article"));
+        assertThat(AccessEvaluator.can(admin, "delete", "article")).isTrue();
 
         List<Ability> superuser = List.of(Ability.of(AccessEvaluator.ANY, AccessEvaluator.ANY));
         assertThat(AccessEvaluator.can(superuser, "whatever", "anything")).isTrue();
@@ -36,25 +36,25 @@ class AccessEvaluatorTest {
 
     @Test
     void failsClosedOnNullInput() {
-        assertThat(AccessEvaluator.can(null, "read", "workorder")).isFalse();
-        assertThat(AccessEvaluator.can(granted, null, "workorder")).isFalse();
+        assertThat(AccessEvaluator.can(null, "read", "article")).isFalse();
+        assertThat(AccessEvaluator.can(granted, null, "article")).isFalse();
         assertThat(AccessEvaluator.can(granted, "read", null)).isFalse();
     }
 
     @Test
     void conditionalAbilityDoesNotGrantWithoutResource() {
-        List<Ability> owned = List.of(Ability.of("update", "workorder", Map.of("ownerId", "u1")));
+        List<Ability> owned = List.of(Ability.of("edit", "article", Map.of("authorId", "a1")));
         // RBAC overload (no resource) → conditional ability cannot grant: fail-closed.
-        assertThat(AccessEvaluator.can(owned, "update", "workorder")).isFalse();
+        assertThat(AccessEvaluator.can(owned, "edit", "article")).isFalse();
     }
 
     @Test
     void conditionalAbilityGrantsWhenConditionHolds() {
-        List<Ability> owned = List.of(Ability.of("update", "workorder", Map.of("ownerId", "u1")));
+        List<Ability> owned = List.of(Ability.of("edit", "article", Map.of("authorId", "a1")));
         AccessEvaluator.ConditionEvaluator ownerCheck =
-                (conditions, resource) -> resource.get("ownerId").equals(conditions.get("ownerId"));
+                (conditions, resource) -> resource.get("authorId").equals(conditions.get("authorId"));
 
-        assertThat(AccessEvaluator.can(owned, "update", "workorder", Map.of("ownerId", "u1"), ownerCheck)).isTrue();
-        assertThat(AccessEvaluator.can(owned, "update", "workorder", Map.of("ownerId", "u2"), ownerCheck)).isFalse();
+        assertThat(AccessEvaluator.can(owned, "edit", "article", Map.of("authorId", "a1"), ownerCheck)).isTrue();
+        assertThat(AccessEvaluator.can(owned, "edit", "article", Map.of("authorId", "a2"), ownerCheck)).isFalse();
     }
 }

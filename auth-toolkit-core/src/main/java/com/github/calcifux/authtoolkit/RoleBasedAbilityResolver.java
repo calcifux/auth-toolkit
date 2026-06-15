@@ -14,8 +14,8 @@ import java.util.Set;
  *
  * <pre>{@code
  * var catalog = Map.of(
- *     "LEADER",  List.of(Ability.of("read", "workorder"), Ability.of("approve", "workorder")),
- *     "FINANCE", List.of(Ability.of("read", "budget"),    Ability.of("authorize", "budget")));
+ *     "EDITOR", List.of(Ability.of("read", "article"), Ability.of("publish", "article")),
+ *     "ADMIN",  List.of(Ability.of("read", "article"), Ability.of("manage",  "report")));
  * AbilityResolver resolver = new RoleBasedAbilityResolver(catalog, rolesLookup);
  * }</pre>
  */
@@ -39,7 +39,7 @@ public class RoleBasedAbilityResolver implements AbilityResolver {
             return AuthorizationProfile.empty();
         }
         // De-dup abilities across roles, preserving order (a user with two roles that
-        // both grant read:workorder should see it once).
+        // both grant read:article should see it once).
         Set<Ability> flattened = new LinkedHashSet<>();
         for (String role : roles) {
             List<Ability> abilities = roleAbilities.get(role);

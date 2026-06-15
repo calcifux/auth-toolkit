@@ -11,6 +11,6 @@ import java.util.Set;
 @FunctionalInterface
 public interface RolesLookup {
 
-    /** The role codes assigned to the principal (e.g. {@code {"LEADER"}}). Never {@code null}. */
+    /** The role codes assigned to the principal (e.g. {@code {"EDITOR"}}). Never {@code null}. */
     Set<String> rolesFor(AuthPrincipal principal);
 }

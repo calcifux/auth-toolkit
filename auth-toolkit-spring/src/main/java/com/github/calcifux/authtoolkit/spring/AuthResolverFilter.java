@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.core.Ordered;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -28,9 +29,17 @@ import java.util.Optional;
  * short-circuits to 401; no credential leaves the request anonymous (downstream guards
  * decide). The context is always cleared in {@code finally}.</p>
  */
-public class AuthResolverFilter extends OncePerRequestFilter {
+public class AuthResolverFilter extends OncePerRequestFilter implements Ordered {
 
     private static final Logger log = LoggerFactory.getLogger(AuthResolverFilter.class);
+
+    /** Runs early/outermost so the context is set before downstream filters (e.g. the security bridge). */
+    public static final int ORDER = -100;
+
+    @Override
+    public int getOrder() {
+        return ORDER;
+    }
 
     private final List<AuthPrincipalResolver> resolvers;
     private final ObjectProvider<AbilityResolver> abilityResolver;

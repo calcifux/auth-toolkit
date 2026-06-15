@@ -1,1 +1,3 @@
 com.github.calcifux.authtoolkit.spring.AuthToolkitAutoConfiguration
+com.github.calcifux.authtoolkit.spring.web.AuthToolkitWebMvcAutoConfiguration
+com.github.calcifux.authtoolkit.spring.method.AuthToolkitMethodSecurityAutoConfiguration

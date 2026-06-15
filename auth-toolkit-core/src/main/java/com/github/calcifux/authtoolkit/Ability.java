@@ -12,8 +12,8 @@ import java.util.Map;
  * that is the whole point of choosing the object form over a flat
  * {@code "subject.action"} string.</p>
  *
- * @param action     the verb, e.g. {@code "read"}, {@code "approve"}, {@code "export"}
- * @param subject    the resource type, e.g. {@code "workorder"}, {@code "file"}
+ * @param action     the verb, e.g. {@code "read"}, {@code "publish"}, {@code "export"}
+ * @param subject    the resource type, e.g. {@code "article"}, {@code "file"}
  * @param conditions optional ABAC constraints; empty == unconditional (RBAC)
  */
 public record Ability(String action, String subject, Map<String, Object> conditions) {

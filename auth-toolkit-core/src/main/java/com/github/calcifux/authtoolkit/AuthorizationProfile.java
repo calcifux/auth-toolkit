@@ -9,7 +9,7 @@ import java.util.Set;
  * check. Produced by an {@link AbilityResolver} from LOCAL data and surfaced to the
  * client by the {@code /me} endpoint.
  *
- * @param roles     coarse role codes, e.g. {@code "LEADER"} (display only — do NOT gate on names)
+ * @param roles     coarse role codes, e.g. {@code "EDITOR"} (display only — do NOT gate on names)
  * @param abilities the flattened capability list the app authorizes against
  */
 public record AuthorizationProfile(Set<String> roles, List<Ability> abilities) {
