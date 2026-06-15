@@ -55,6 +55,21 @@ public final class JwtIssuer {
         }
     }
 
+    /**
+     * RS256 issuer that loads the keypair from PEM FILES on the filesystem (not the classpath) —
+     * the jr-first one-liner: generate the keys once (see {@link RsaKeyGenerator} / {@code openssl}),
+     * keep the private one secret, point config at the two paths. The {@code keyId} is stamped into
+     * every token header so verifiers can rotate by {@code kid}.
+     *
+     * @param issuer         the {@code iss} to stamp on issued tokens
+     * @param keyId          key id for rotation ({@code null} to omit {@code kid})
+     * @param privateKeyPath filesystem path to the PKCS#8 private PEM (the SECRET, chmod 600)
+     * @param publicKeyPath  filesystem path to the X.509 public PEM
+     */
+    public static JwtIssuer rsaFromPem(String issuer, String keyId, String privateKeyPath, String publicKeyPath) {
+        return rsa(issuer, RsaKeys.signingKey(privateKeyPath, publicKeyPath, keyId));
+    }
+
     /** Issue a token for {@code subject}, valid for {@code ttl}, with optional audience + extra claims. */
     public String issue(String subject, String audience, Duration ttl, Map<String, Object> extraClaims) {
         Instant now = Instant.now();

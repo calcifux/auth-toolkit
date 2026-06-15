@@ -31,6 +31,16 @@ public final class IdpProvider {
         return new JwtVerifierSettings(issuer, jwksUri, null, audience, "sub", "email", "name");
     }
 
+    /**
+     * Self-issued tokens verified OFFLINE against your OWN local public key (RS256, no remote
+     * JWKS). Pair with {@link JwtVerifier#localRsa} / {@link JwtVerifier#rsaFromPem}: the public
+     * key is supplied directly, so both remote sources are {@code null} here on purpose. This is
+     * the typical single-service shape — sign with a private PEM file, verify with the public one.
+     */
+    public static JwtVerifierSettings selfLocalRsa(String issuer, String audience) {
+        return new JwtVerifierSettings(issuer, null, null, audience, "sub", "email", "name");
+    }
+
     /** Laravel Passport access tokens (OAuth2 RS256) — point at Passport's JWKS endpoint. */
     public static JwtVerifierSettings passport(String issuer, String jwksUri, String audience) {
         return new JwtVerifierSettings(issuer, jwksUri, null, audience, "sub", "email", "name");

@@ -5,6 +5,9 @@ import com.github.calcifux.authtoolkit.IdentityClaims;
 import com.github.calcifux.authtoolkit.TokenVerificationException;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.jwk.source.JWKSourceBuilder;
@@ -51,9 +54,37 @@ public class JwtVerifier {
         this.settings = settings;
         JWSAlgorithm algorithm = settings.usesSharedSecret() ? JWSAlgorithm.HS256 : JWSAlgorithm.RS256;
         ConfigurableJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
+        // Pin the algorithm — the key selector accepts ONLY this alg, closing the RS256<->HS256
+        // confusion / "alg:none" attacks regardless of what the token header claims.
         jwtProcessor.setJWSKeySelector(new JWSVerificationKeySelector<>(algorithm, keySource));
         jwtProcessor.setJWTClaimsSetVerifier(buildClaimsVerifier(settings));
         this.processor = jwtProcessor;
+    }
+
+    /**
+     * RS256 verification against a single LOCAL public key held in memory — the offline
+     * counterpart to JWKS. Verifies your own self-issued tokens with just the public key (no
+     * network). The key's {@code kid} drives rotation: keep old + new public keys to verify
+     * tokens minted under either during a rollover.
+     *
+     * @param settings  use {@link IdpProvider#selfLocalRsa} (no remote source set)
+     * @param publicKey the public RSA key (e.g. from {@link RsaKeys#verificationKey})
+     */
+    public static JwtVerifier localRsa(JwtVerifierSettings settings, RSAKey publicKey) {
+        return new JwtVerifier(settings, new ImmutableJWKSet<>(new JWKSet(publicKey)));
+    }
+
+    /**
+     * RS256 verification against a public key loaded from a PEM FILE on the filesystem — the
+     * jr-first one-liner for "verify my own tokens with the public key I generated".
+     *
+     * @param issuer        expected {@code iss} ({@code null} skips the check)
+     * @param audience      expected {@code aud} ({@code null} skips the check)
+     * @param keyId         expected key id for rotation ({@code null} if you don't use {@code kid})
+     * @param publicKeyPath filesystem path to the X.509 public PEM ({@code BEGIN PUBLIC KEY})
+     */
+    public static JwtVerifier rsaFromPem(String issuer, String audience, String keyId, String publicKeyPath) {
+        return localRsa(IdpProvider.selfLocalRsa(issuer, audience), RsaKeys.verificationKey(publicKeyPath, keyId));
     }
 
     /**
@@ -83,6 +114,11 @@ public class JwtVerifier {
     private static JWKSource<SecurityContext> defaultKeySource(JwtVerifierSettings settings) {
         if (settings.usesSharedSecret()) {
             return new ImmutableSecret<>(settings.hmacSecret().getBytes(StandardCharsets.UTF_8));
+        }
+        if (settings.jwksUri() == null || settings.jwksUri().isBlank()) {
+            throw new AuthToolkitException(
+                    "No key source set. Use a JWKS endpoint or HMAC secret, or for a local public "
+                    + "key call JwtVerifier.localRsa(...) / JwtVerifier.rsaFromPem(...) instead.");
         }
         try {
             URL url = URI.create(settings.jwksUri()).toURL();

@@ -266,10 +266,48 @@ emit flat permission codes).
 
 ## Issuing your own tokens
 
+When the service is its own authorization server (a session cookie, a token for a
+downstream service), issue and verify with the same kit.
+
 ```java
 var issuer = JwtIssuer.rsa("https://my-service", rsaKey);   // or JwtIssuer.hmac(...)
 String accessToken = issuer.issue(userId.toString(), "downstream-api", Duration.ofMinutes(5), Map.of());
 ```
+
+### RS256 from local PEM files (sign private, verify public)
+
+Generate the keypair **outside** the build artifact, keep the private key secret and read
+both from the **filesystem** (absolute or relative path — never the classpath). Pure JDK, no
+BouncyCastle.
+
+```bash
+# Option A — the kit's generator (no openssl needed; private file is written chmod 600):
+java -cp auth-toolkit-core.jar com.github.calcifux.authtoolkit.jwt.KeyGenCli keys/private.pem keys/public.pem 2048
+
+# Option B — openssl (PKCS#8 private + X.509 public, the canonical format the kit reads):
+openssl genpkey -algorithm RSA -out keys/private.pem -pkeyopt rsa_keygen_bits:2048
+openssl rsa -pubout -in keys/private.pem -out keys/public.pem
+chmod 600 keys/private.pem
+```
+
+```java
+// Sign with the private key, verify with ONLY the public key — a second service can verify
+// without ever holding signing power. `kid` lets you rotate (keep old+new public keys to verify
+// tokens minted under either during a rollover).
+var issuer   = JwtIssuer.rsaFromPem("my-service", "key-2026", "keys/private.pem", "keys/public.pem");
+var verifier = JwtVerifier.rsaFromPem("my-service", "my-api", "key-2026", "keys/public.pem");
+
+String token = issuer.issue(userId.toString(), "my-api", Duration.ofMinutes(30), Map.of());
+IdentityClaims who = verifier.verify(token);   // checks signature + iss + aud + exp, alg pinned to RS256
+
+// Expose the public key as JWKS so other services can verify your tokens:
+//   GET /.well-known/jwks.json
+String jwks = RsaKeys.publicJwksJson(RsaKeys.verificationKey("keys/public.pem", "key-2026"));
+```
+
+> Read the key **paths** from config (`.env` / `application.yml`), never bake the key into
+> `src/main/resources`: a private signing key in the jar can't be `chmod 600`, can't be rotated
+> without a rebuild, and ships inside every copy of the artifact.
 
 ## Build
 
