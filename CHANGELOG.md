@@ -6,6 +6,15 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.1.1]
+
+### Added
+
+- `AuthContext.populate(...)` and `AuthContext.clear()` are now public — **bring your own resolver**:
+  an app that already resolves identity with its own filter can populate the toolkit context (so the
+  `Auth` facade, `@CurrentUser` injection and the `@PreAuthorize` bridge work) without using
+  `AuthResolverFilter` or re-resolving the credential.
+
 ## [0.1.0]
 
 Initial release.
@@ -24,5 +33,6 @@ Initial release.
   - Per-request resolver-chain filter with header, bearer-JWT and opaque cookie-session adapters.
   - Static `Auth` facade (`Auth.can(...)`, `Auth.userId()`, ...).
 
-[Unreleased]: https://github.com/calcifux/auth-toolkit/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/calcifux/auth-toolkit/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/calcifux/auth-toolkit/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/calcifux/auth-toolkit/releases/tag/v0.1.0

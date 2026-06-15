@@ -62,6 +62,11 @@ request ──> AuthResolverFilter ──> [ordered AuthPrincipalResolver chain]
 - **Present but invalid** (bad JWT) → `401`.
 - **Opaque session unknown/expired** → anonymous (normal expiry → login), not an error.
 
+> **Bring your own resolver.** Already have an auth filter? Skip the toolkit's filter and call
+> `AuthContext.populate(principal, profile)` from your own filter (clear it in a `finally`). The
+> `Auth` facade, `@CurrentUser` injection and the `@PreAuthorize` bridge then work on top of your
+> existing pipeline — no second credential resolution.
+
 ## Providers
 
 Turn an adapter on with its `enabled` flag; run one (the typical case) or several in the
