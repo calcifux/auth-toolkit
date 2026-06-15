@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="
+            http://maven.apache.org/POM/4.0.0
+            https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.github.calcifux</groupId>
+    <artifactId>auth-toolkit-parent</artifactId>
+    <version>${revision}</version>
+  </parent>
+
+  <artifactId>auth-toolkit-spring</artifactId>
+  <packaging>jar</packaging>
+
+  <name>auth-toolkit-spring</name>
+  <description>
+    Spring Boot starter for auth-toolkit: auto-configuration, ConfigurationProperties,
+    a per-request resolver-chain filter, the provider adapters (header / bearer-JWT /
+    opaque cookie-session) and a static Auth facade. Mount it and pick a provider with
+    one property.
+  </description>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.github.calcifux</groupId>
+      <artifactId>auth-toolkit-core</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-autoconfigure</artifactId>
+    </dependency>
+
+    <!-- OncePerRequestFilter + servlet plumbing. -->
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-web</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- Emits config metadata for IDE autocomplete of auth.toolkit.* -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-configuration-processor</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>${lombok.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- Testing -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+</project>
