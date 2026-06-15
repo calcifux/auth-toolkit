@@ -8,6 +8,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -98,6 +99,37 @@ class RsaPemRoundTripTest {
         JwtVerifier verifier = JwtVerifier.rsaFromPem(ISSUER, AUDIENCE, KID, publicKeyPath);
         assertThatThrownBy(() -> verifier.verify(foreign))
                 .isInstanceOf(TokenVerificationException.class);
+    }
+
+    @Test
+    void verifiesTokensFromEitherKeyDuringRotation(@TempDir Path dir) {
+        // Two independent keypairs with distinct kids = the "old" and "new" rotation keys.
+        Path oldPriv = dir.resolve("old-private.pem"), oldPub = dir.resolve("old-public.pem");
+        Path newPriv = dir.resolve("new-private.pem"), newPub = dir.resolve("new-public.pem");
+        RsaKeyGenerator.writeKeypair(2048, oldPriv, oldPub);
+        RsaKeyGenerator.writeKeypair(2048, newPriv, newPub);
+
+        JwtIssuer oldIssuer = JwtIssuer.rsaFromPem(ISSUER, "kid-old", oldPriv.toString(), oldPub.toString());
+        JwtIssuer newIssuer = JwtIssuer.rsaFromPem(ISSUER, "kid-new", newPriv.toString(), newPub.toString());
+
+        // Verifier holds BOTH public keys (overlap window) — it selects by the token's kid.
+        JwtVerifier verifier = JwtVerifier.localRsa(
+                IdpProvider.selfLocalRsa(ISSUER, AUDIENCE),
+                List.of(RsaKeys.verificationKey(oldPub.toString(), "kid-old"),
+                        RsaKeys.verificationKey(newPub.toString(), "kid-new")));
+
+        String oldToken = oldIssuer.issue("u1", AUDIENCE, Duration.ofMinutes(10), Map.of());
+        String newToken = newIssuer.issue("u2", AUDIENCE, Duration.ofMinutes(10), Map.of());
+
+        assertThat(verifier.verify(oldToken).externalId()).isEqualTo("u1"); // kid viejo sigue válido
+        assertThat(verifier.verify(newToken).externalId()).isEqualTo("u2"); // kid nuevo válido
+
+        // Un token de una TERCERA llave desconocida (aunque reuse un kid conocido) es rechazado.
+        Path strayPriv = dir.resolve("stray-private.pem"), strayPub = dir.resolve("stray-public.pem");
+        RsaKeyGenerator.writeKeypair(2048, strayPriv, strayPub);
+        String stray = JwtIssuer.rsaFromPem(ISSUER, "kid-old", strayPriv.toString(), strayPub.toString())
+                .issue("u3", AUDIENCE, Duration.ofMinutes(10), Map.of());
+        assertThatThrownBy(() -> verifier.verify(stray)).isInstanceOf(TokenVerificationException.class);
     }
 
     @Test

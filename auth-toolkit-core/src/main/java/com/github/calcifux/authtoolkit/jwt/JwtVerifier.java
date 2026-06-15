@@ -5,6 +5,7 @@ import com.github.calcifux.authtoolkit.IdentityClaims;
 import com.github.calcifux.authtoolkit.TokenVerificationException;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
@@ -24,6 +25,8 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -72,6 +75,20 @@ public class JwtVerifier {
      */
     public static JwtVerifier localRsa(JwtVerifierSettings settings, RSAKey publicKey) {
         return new JwtVerifier(settings, new ImmutableJWKSet<>(new JWKSet(publicKey)));
+    }
+
+    /**
+     * RS256 verification against SEVERAL local public keys — for KEY ROTATION. The token's {@code kid}
+     * selects the matching key, so during a rollover you keep BOTH the previous and the new public key in
+     * the set: tokens minted under either {@code kid} still verify until they expire (no mass logout).
+     * Once every token minted under the old key has expired, drop it from the list.
+     *
+     * @param settings   use {@link IdpProvider#selfLocalRsa}
+     * @param publicKeys the accepted public keys, each carrying its own {@code kid}
+     */
+    public static JwtVerifier localRsa(JwtVerifierSettings settings, List<RSAKey> publicKeys) {
+        List<JWK> jwks = new ArrayList<>(publicKeys);
+        return new JwtVerifier(settings, new ImmutableJWKSet<>(new JWKSet(jwks)));
     }
 
     /**

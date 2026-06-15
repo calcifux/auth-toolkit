@@ -6,6 +6,15 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.1.3]
+
+### Added
+
+- **Multi-key local RS256 verification for key rotation** — `JwtVerifier.localRsa(settings, List<RSAKey>)`
+  accepts several local public keys; the token's `kid` selects the matching one, so during a rollover you keep
+  the previous and the new public key in the set and tokens minted under either `kid` still verify until they
+  expire (no mass logout). Drop the old key once all tokens minted under it have expired.
+
 ## [0.1.2]
 
 ### Added
@@ -56,7 +65,8 @@ Initial release.
   - Per-request resolver-chain filter with header, bearer-JWT and opaque cookie-session adapters.
   - Static `Auth` facade (`Auth.can(...)`, `Auth.userId()`, ...).
 
-[Unreleased]: https://github.com/calcifux/auth-toolkit/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/calcifux/auth-toolkit/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/calcifux/auth-toolkit/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/calcifux/auth-toolkit/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/calcifux/auth-toolkit/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/calcifux/auth-toolkit/releases/tag/v0.1.0
