@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.authorization.method.PrePostTemplateDefaults;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 
 /**
@@ -41,5 +42,15 @@ public class AuthToolkitMethodSecurityAutoConfiguration {
     @ConditionalOnMissingBean(name = "authz")
     public AuthzExpression authzExpression() {
         return new AuthzExpression();
+    }
+
+    /**
+     * Enables {@code {action}}/{@code {subject}} placeholder substitution in meta-annotations like
+     * {@link AuthCan} (which is a meta-{@code @PreAuthorize("@authz.can('{action}','{subject}')")}).
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public PrePostTemplateDefaults authToolkitPrePostTemplateDefaults() {
+        return new PrePostTemplateDefaults();
     }
 }

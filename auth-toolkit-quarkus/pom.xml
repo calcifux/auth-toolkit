@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="
+            http://maven.apache.org/POM/4.0.0
+            https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.github.calcifux</groupId>
+    <artifactId>auth-toolkit-parent</artifactId>
+    <version>${revision}</version>
+  </parent>
+
+  <artifactId>auth-toolkit-quarkus</artifactId>
+  <packaging>jar</packaging>
+
+  <name>auth-toolkit-quarkus</name>
+  <description>
+    Adapter for Quarkus and any compatible CDI runtime (Helidon, OpenLiberty, ...).
+    Provides the static, Laravel-style Auth facade + the per-request AuthContext
+    holder (bring-your-own-resolver) and an injectable CDI twin (AuthCdiService),
+    all on top of the framework-agnostic auth-toolkit-core. Mirrors the
+    remote-upload-quarkus / remote-download-quarkus adapters. Native-image support
+    is not included in v1.
+  </description>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.github.calcifux</groupId>
+      <artifactId>auth-toolkit-core</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>jakarta.enterprise</groupId>
+      <artifactId>jakarta.enterprise.cdi-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- JAX-RS API (provided): el AuthCanInterceptor lanza ForbiddenException (403) cuando la autorización
+         declarativa @AuthCan falla. Lo aporta el runtime de la app (quarkus-rest / cualquier Jakarta REST). -->
+    <dependency>
+      <groupId>jakarta.ws.rs</groupId>
+      <artifactId>jakarta.ws.rs-api</artifactId>
+      <version>3.1.0</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>${lombok.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- Testing -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <!-- Emit META-INF/jandex.idx into the jar (process-classes) so Quarkus/Arc auto-discovers this
+           module's @ApplicationScoped beans with no quarkus.index-dependency in the consuming app. -->
+      <plugin>
+        <groupId>io.smallrye</groupId>
+        <artifactId>jandex-maven-plugin</artifactId>
+        <version>${jandex-maven-plugin.version}</version>
+        <executions>
+          <execution>
+            <id>make-index</id>
+            <goals>
+              <goal>jandex</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>
